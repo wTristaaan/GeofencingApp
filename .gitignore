@@ -70,3 +70,4 @@ testem.log
 Thumbs.db
 
 server/env
+server/__pycache__
