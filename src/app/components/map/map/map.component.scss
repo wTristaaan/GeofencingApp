@@ -1,4 +1,17 @@
+/* src/app/components/map/map/map.component.scss */
 #map {
     height: 100vh;
     width: 100%;
-}
+  }
+  
+  .coordinates-box {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    z-index: 1001; /* Assurez-vous que l'élément est au-dessus de la carte */
+  }
+  
