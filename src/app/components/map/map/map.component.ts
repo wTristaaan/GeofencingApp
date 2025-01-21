@@ -1,6 +1,8 @@
-import { Component, OnInit, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import * as L from 'leaflet';
-import { Geolocation, Position } from '@capacitor/geolocation';
+import {  Position } from '@capacitor/geolocation';
+import { GeolocService } from 'src/app/services/geoloc.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-map',
@@ -8,24 +10,34 @@ import { Geolocation, Position } from '@capacitor/geolocation';
   styleUrls: ['./map.component.scss'],
   standalone: false
 })
-export class MapComponent implements OnInit, AfterViewInit {
+export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private map: any = L.Map;
   private userMarker: L.Marker | undefined;
   private previousPosition: Position | null = null;
   private currentPosition: Position | null = null;
   private animationInterval: any;
+  private positionSubscription: Subscription | undefined;
 
   public latitude: number | null = null;
   public longitude: number | null = null;
   public accuracy: number | null = null;
 
-  constructor(private elementRef: ElementRef) {}
+  constructor(private elementRef: ElementRef, private geolocService: GeolocService) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.positionSubscription = this.geolocService.getPositionUpdates().subscribe((position: Position) => {
+      this.updatePosition(position);
+    });
+  }
 
   ngAfterViewInit(): void {
     this.initMap();
-    this.watchUserPosition();
+  }
+
+  ngOnDestroy(): void {
+    if (this.positionSubscription) {
+      this.positionSubscription.unsubscribe();
+    }
   }
 
   private initMap(): void {
@@ -40,29 +52,18 @@ export class MapComponent implements OnInit, AfterViewInit {
     }, 50);
   }
 
-  private watchUserPosition(): void {
-    const options = {
-      enableHighAccuracy: true,
-    };
+  private updatePosition(position: Position): void {
+    this.currentPosition = position;
+    this.latitude = position.coords.latitude;
+    this.longitude = position.coords.longitude;
+    this.accuracy = position.coords.accuracy;
 
-    const successCallback = (position: Position | null) => {
-      if (position) {
-        this.currentPosition = position;
-        this.latitude = position.coords.latitude;
-        this.longitude = position.coords.longitude;
-        this.accuracy = position.coords.accuracy;
-
-        if (this.previousPosition) {
-          this.animateMarker(this.previousPosition.coords, position.coords);
-        } else {
-          this.initializeMarker(position.coords);
-        }
-        this.previousPosition = position;
-      }
-    };
-
-    console.log('Démarrage de watchPosition...');
-    Geolocation.watchPosition(options, successCallback);
+    if (this.previousPosition) {
+      this.animateMarker(this.previousPosition.coords, position.coords);
+    } else {
+      this.initializeMarker(position.coords);
+    }
+    this.previousPosition = position;
   }
 
   private initializeMarker(coords: any): void {
@@ -72,7 +73,7 @@ export class MapComponent implements OnInit, AfterViewInit {
       iconAnchor: [25, 50],
       shadowUrl: 'assets/icon/user-shadow.png',
       shadowSize: [50, 50],
-      shadowAnchor: [27, 48]
+      shadowAnchor: [25, 50]
     });
 
     this.userMarker = L.marker([coords.latitude, coords.longitude], { icon }).addTo(this.map);
