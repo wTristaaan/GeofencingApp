@@ -1,0 +1,7 @@
+{
+  "name": "GeofencingApp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
