@@ -3,6 +3,7 @@ import * as L from 'leaflet';
 import {  Position } from '@capacitor/geolocation';
 import { GeolocService } from 'src/app/services/geoloc.service';
 import { Subscription } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-map',
@@ -17,16 +18,24 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private currentPosition: Position | null = null;
   private animationInterval: any;
   private positionSubscription: Subscription | undefined;
+  private pointsLayer: L.LayerGroup | null = null;
+  private count: number = 0;
+
 
   public latitude: number | null = null;
   public longitude: number | null = null;
   public accuracy: number | null = null;
 
-  constructor(private elementRef: ElementRef, private geolocService: GeolocService) {}
+  constructor(private elementRef: ElementRef, private geolocService: GeolocService, private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
     this.positionSubscription = this.geolocService.getPositionUpdates().subscribe((position: Position) => {
       this.updatePosition(position);
+      this.count++;
+      if(this.count >= 20){
+        this.showToastMessage();
+        this.count = 0; // Réinitialiser le compteur
+      }
     });
   }
 
@@ -37,6 +46,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.positionSubscription) {
       this.positionSubscription.unsubscribe();
+      this.geolocService.sendCoordinatesToFastAPI()
     }
   }
 
@@ -46,6 +56,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(this.map);
+
+    this.pointsLayer = L.layerGroup().addTo(this.map);
 
     setTimeout(() => {
       this.map.invalidateSize();
@@ -70,10 +82,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     const icon = L.icon({
       iconUrl: 'assets/icon/user.png',
       iconSize: [50, 50],
-      iconAnchor: [25, 50],
+      iconAnchor: [20, 25],
       shadowUrl: 'assets/icon/user-shadow.png',
       shadowSize: [50, 50],
-      shadowAnchor: [25, 50]
+      shadowAnchor: [22, 22]
     });
 
     this.userMarker = L.marker([coords.latitude, coords.longitude], { icon }).addTo(this.map);
@@ -103,5 +115,40 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         clearInterval(this.animationInterval);
       }
     }, interval);
+  }
+
+  fetchCoordinates(): void {
+    this.geolocService.getCoordinates().subscribe(
+      (coordinates) => {
+        console.log('Coordinates received:', coordinates);
+        this.displayPoints(coordinates);
+      },
+      (error) => {
+        console.error('Error fetching coordinates:', error);
+      }
+    );
+  }
+
+  private displayPoints(coordinates: any[]): void {
+    coordinates.forEach(coord => {
+      const allLatitude = coord.geom.split(' ')[2].split(' ').toString();
+      const latitude = allLatitude.substring(0, allLatitude.length - 1);
+      const allLongitude = coord.geom.split(' ')[1].split(' ').toString();
+      const longitude = allLongitude.substring(1);
+      L.circleMarker([parseFloat(latitude), parseFloat(longitude)], {
+        radius: 8,
+        fillColor: "#ffffff", // Couleur blanche pour les points
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
+      }).addTo(this.pointsLayer!);
+    });
+  }
+
+  private showToastMessage(): void {
+    this.snackBar.open(this.count + ' positions mises à jour', 'Fermer', {
+      duration: 3000,
+    });
   }
 }

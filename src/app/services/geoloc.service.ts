@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Geolocation, Position } from '@capacitor/geolocation';
 
@@ -9,7 +9,7 @@ import { Geolocation, Position } from '@capacitor/geolocation';
 export class GeolocService {
   private positionUpdates = new Subject<Position>();
   private coordinatesList: Position[] = [];
-  private fastapiUrl = 'http://localhost:8000/coordinates';
+  private fastapiUrl = 'https://192.168.1.13:8000/coordinates';
 
   constructor(private http: HttpClient) {
     this.watchUserPosition();
@@ -34,14 +34,15 @@ export class GeolocService {
 
   private addCoordinate(position: Position): void {
     this.coordinatesList.push(position);
-    if (this.coordinatesList.length >= 1) {
-      console.log('1000 coordonnées atteintes!');
-      this.sendCoordinatesToFastAPI(this.coordinatesList);
+    if (this.coordinatesList.length >= 20) {
+      console.log('20 coordonnées atteintes!');
+      this.sendCoordinatesToFastAPI();
       this.coordinatesList = []; 
     }
   }
 
-  private sendCoordinatesToFastAPI(coordinates: Position[]): void {
+  public sendCoordinatesToFastAPI(): void {
+    var coordinates = this.coordinatesList;
     const coordinatesData = coordinates.map(coord => ({
       latitude: coord.coords.latitude,
       longitude: coord.coords.longitude,
@@ -63,5 +64,9 @@ export class GeolocService {
 
   getPositionUpdates() {
     return this.positionUpdates.asObservable();
+  }
+
+  getCoordinates(): Observable<any> {
+    return this.http.get(`${this.fastapiUrl}`);
   }
 }
