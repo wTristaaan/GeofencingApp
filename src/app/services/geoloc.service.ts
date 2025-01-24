@@ -9,7 +9,7 @@ import { Geolocation, Position } from '@capacitor/geolocation';
 export class GeolocService {
   private positionUpdates = new Subject<Position>();
   private coordinatesList: Position[] = [];
-  private fastapiUrl = 'https://192.168.1.13:8000/coordinates';
+  private fastapiUrl = 'http://127.0.0.1:8000/coordinates';
 
   constructor(private http: HttpClient) {
     this.watchUserPosition();
@@ -34,8 +34,8 @@ export class GeolocService {
 
   private addCoordinate(position: Position): void {
     this.coordinatesList.push(position);
-    if (this.coordinatesList.length >= 20) {
-      console.log('20 coordonnées atteintes!');
+    if (this.coordinatesList.length >= 15) {
+      console.log('15 coordonnées atteintes!');
       this.sendCoordinatesToFastAPI();
       this.coordinatesList = []; 
     }

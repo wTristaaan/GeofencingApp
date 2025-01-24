@@ -53,8 +53,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private initMap(): void {
     this.map = L.map(this.elementRef.nativeElement.querySelector('#map')).setView([46.603354, 1.888334], 6); // Coordonnées de la France
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+      minZoom: 6
     }).addTo(this.map);
 
     this.pointsLayer = L.layerGroup().addTo(this.map);
@@ -130,22 +131,54 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private displayPoints(coordinates: any[]): void {
+    this.map.eachLayer((layer: L.Layer) => {
+      if (layer instanceof L.Polygon) {
+        this.map.removeLayer(layer);
+      }
+    });
+
+    var all_visited_bound = this.addVisitedAreas(coordinates);
+
+    const all: L.LatLngExpression[] = [
+      [-90, -180],
+      [-90, 180],
+      [90, 180],
+      [90, -180],
+    ];
+
+    const coords = [all, ...all_visited_bound];
+    console.log(coords)
+
+
+    const redLayer = L.polygon(coords, {
+      color: '#B3DEC1',
+      fillColor: '#B3DEC1',
+      fillOpacity: 0.5,
+      weight: 0
+    }).addTo(this.map);
+
+    
+  }
+  
+  private addVisitedAreas(coordinates: any[]) {
+    var all_visited_bound: any[] = []
     coordinates.forEach(coord => {
       const allLatitude = coord.geom.split(' ')[2].split(' ').toString();
       const latitude = allLatitude.substring(0, allLatitude.length - 1);
       const allLongitude = coord.geom.split(' ')[1].split(' ').toString();
       const longitude = allLongitude.substring(1);
-      L.circleMarker([parseFloat(latitude), parseFloat(longitude)], {
-        radius: 8,
-        fillColor: "#ffffff", // Couleur blanche pour les points
-        color: "#000",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.8
-      }).addTo(this.pointsLayer!);
-    });
-  }
 
+      all_visited_bound.push([
+        [parseFloat(latitude) - 0.0002, parseFloat(longitude) - 0.0002],
+        [parseFloat(latitude) - 0.0002, parseFloat(longitude) + 0.0002],
+        [parseFloat(latitude) + 0.0002, parseFloat(longitude) + 0.0002],
+        [parseFloat(latitude) + 0.0002, parseFloat(longitude) - 0.0002],
+      ])
+    });
+
+    return all_visited_bound;
+  }
+  
   private showToastMessage(): void {
     this.snackBar.open(this.count + ' positions mises à jour', 'Fermer', {
       duration: 3000,

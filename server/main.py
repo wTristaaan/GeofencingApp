@@ -46,8 +46,8 @@ class CoordinateResponse(BaseModel):
 
 @app.post("/coordinates")
 async def receive_coordinates(coordinates: List[CoordinateModel]):
-    if len(coordinates) != 20:
-        raise HTTPException(status_code=400, detail="The list must contain exactly 20 coordinates")
+    if len(coordinates) != 15:
+        raise HTTPException(status_code=400, detail="The list must contain exactly 15 coordinates")
 
     db = SessionLocal()
     try:
