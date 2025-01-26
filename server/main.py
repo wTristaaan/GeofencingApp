@@ -10,7 +10,9 @@ from geoalchemy2 import Geometry
 from geoalchemy2.shape import to_shape   
 
 
-DATABASE_URL = "postgresql://geodb_d4g4_user:CDoCva52F0uWg1gWczc2m1W8uJC3560v@dpg-cub0im52ng1s73al8gcg-a/geodb_d4g4"
+DATABASE_URL = "postgresql://postgres:password@localhost/geodb"
+#DATABASE_URL = "postgresql://geodb_d4g4_user:CDoCva52F0uWg1gWczc2m1W8uJC3560v@dpg-cub0im52ng1s73al8gcg-a/geodb_d4g4"
+
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

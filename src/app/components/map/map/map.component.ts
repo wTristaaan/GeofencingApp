@@ -32,7 +32,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.positionSubscription = this.geolocService.getPositionUpdates().subscribe((position: Position) => {
       this.updatePosition(position);
       this.count++;
-      if(this.count >= 20){
+      if(this.count >= 15){
         this.showToastMessage();
         this.count = 0; // Réinitialiser le compteur
       }
@@ -51,11 +51,14 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initMap(): void {
-    this.map = L.map(this.elementRef.nativeElement.querySelector('#map')).setView([46.603354, 1.888334], 6); // Coordonnées de la France
+    this.map = L.map(this.elementRef.nativeElement.querySelector('#map'), {
+      zoomControl: false,
+      attributionControl: false
+    }).setView([46.603354, 1.888334], 6);
 
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-      minZoom: 6
+      //attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+      minZoom: 6,
     }).addTo(this.map);
 
     this.pointsLayer = L.layerGroup().addTo(this.map);
@@ -131,33 +134,41 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private displayPoints(coordinates: any[]): void {
+    var showLayer = true;
     this.map.eachLayer((layer: L.Layer) => {
       if (layer instanceof L.Polygon) {
         this.map.removeLayer(layer);
+        showLayer = false
       }
     });
 
-    var all_visited_bound = this.addVisitedAreas(coordinates);
+    if(showLayer){
+      var all_visited_bound = this.addVisitedAreas(coordinates);
 
-    const all: L.LatLngExpression[] = [
-      [-90, -180],
-      [-90, 180],
-      [90, 180],
-      [90, -180],
-    ];
-
-    const coords = [all, ...all_visited_bound];
-    console.log(coords)
-
-
-    const redLayer = L.polygon(coords, {
-      color: '#B3DEC1',
-      fillColor: '#B3DEC1',
-      fillOpacity: 0.5,
-      weight: 0
-    }).addTo(this.map);
-
-    
+      const all: L.LatLngExpression[] = [
+        [-90, -180],
+        [-90, 180],
+        [90, 180],
+        [90, -180],
+      ];
+  
+      const coords = [all, ...all_visited_bound];
+      console.log(coords)
+  
+  
+      const redLayer = L.polygon(coords, {
+        color: '#B3DEC1',
+        fillColor: '#B3DEC1',
+        fillOpacity: 0.5,
+        weight: 0
+      }).addTo(this.map);
+    }else{
+      this.map.eachLayer((layer: L.Layer) => {
+        if (layer instanceof L.Polygon) {
+          this.map.removeLayer(layer);
+        }
+      });
+    }
   }
   
   private addVisitedAreas(coordinates: any[]) {
