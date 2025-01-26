@@ -5,4 +5,5 @@
   <p>Longitude: {{ longitude }}</p>
   <p>Précision: {{ accuracy }} m</p>
 </div> -->
-<button class="map-button" (click)="fetchCoordinates()">Show visited points</button>
+<button class="map-button-coord" (click)="fetchCoordinates()">Show visited points</button>
+<button class="map-button-photo" (click)="getPhotos()" *ngIf="ios || android">Select pictures</button>

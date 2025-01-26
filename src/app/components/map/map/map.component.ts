@@ -4,6 +4,8 @@ import {  Position } from '@capacitor/geolocation';
 import { GeolocService } from 'src/app/services/geoloc.service';
 import { Subscription } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { PhotoService } from 'src/app/services/photo.service';
+import { Platform } from '@ionic/angular';
 
 @Component({
   selector: 'app-map',
@@ -20,13 +22,24 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private positionSubscription: Subscription | undefined;
   private pointsLayer: L.LayerGroup | null = null;
   private count: number = 0;
+  ios: boolean = false;
+  android: boolean = false;
 
 
   public latitude: number | null = null;
   public longitude: number | null = null;
   public accuracy: number | null = null;
 
-  constructor(private elementRef: ElementRef, private geolocService: GeolocService, private snackBar: MatSnackBar) {}
+  constructor(
+    private elementRef: ElementRef, 
+    private geolocService: GeolocService, 
+    private snackBar: MatSnackBar,
+    private photoService: PhotoService,
+    public platform: Platform
+  ) {
+    this.ios = platform.is('ios');
+    this.android = platform.is('android');
+  }
 
   ngOnInit(): void {
     this.positionSubscription = this.geolocService.getPositionUpdates().subscribe((position: Position) => {
@@ -194,5 +207,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.snackBar.open(this.count + ' positions mises à jour', 'Fermer', {
       duration: 3000,
     });
+  }
+
+  getPhotos(){
+    console.log("ok")
+    this.photoService.getPhotos()
   }
 }

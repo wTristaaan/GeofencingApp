@@ -9,8 +9,8 @@ import { Geolocation, Position } from '@capacitor/geolocation';
 export class GeolocService {
   private positionUpdates = new Subject<Position>();
   private coordinatesList: Position[] = [];
-  private fastapiUrl = 'http://127.0.0.1:8000/coordinates';
-  /*private fastapiUrl = 'https://geofencingapp.onrender.com/coordinates';*/
+  //private fastapiUrl = 'http://127.0.0.1:8000/coordinates';
+  private fastapiUrl = 'https://geofencingapp.onrender.com/coordinates';
 
 
   constructor(private http: HttpClient) {

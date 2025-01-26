@@ -15,7 +15,7 @@
   z-index: 1000;
 }
 
-.map-button {
+.map-button-coord {
   position: absolute;
   top: 50px;
   right: 10px;
@@ -28,7 +28,24 @@
   cursor: pointer;
 }
 
-.map-button:hover {
+.map-button-photo {
+  position: absolute;
+  top: 100px;
+  right: 10px;
+  z-index: 1000;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.map-button-coord:hover {
+  background-color: #0056b3;
+}
+
+.map-button-photo:hover {
   background-color: #0056b3;
 }
 
